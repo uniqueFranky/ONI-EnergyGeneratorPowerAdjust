@@ -12,6 +12,8 @@ namespace EnergyGeneratorPowerAdjust
 
         [Serialize]
         public float Power { get; set; }
+
+        public EnergyGenerator.Formula originalFormula;
             
         [MyCmpReq]
         private EnergyGenerator energyGenerator;
@@ -24,7 +26,33 @@ namespace EnergyGeneratorPowerAdjust
 
         void ISliderControl.SetSliderValue(float value, int index)
         {
+            // set power
             Power = value;
+            
+            // set input amount
+            if (energyGenerator.formula.inputs != null)
+            {
+                for (int i = 0; i < energyGenerator.formula.inputs.Length; i++)
+                {
+                    energyGenerator.formula.inputs[i].consumptionRate = originalFormula.inputs[i].consumptionRate * Power /
+                                                                        energyGenerator.BaseWattageRating;
+                    // FIXME: Here maxStoredMass doesn't work!
+                    energyGenerator.formula.inputs[i].maxStoredMass = originalFormula.inputs[i].maxStoredMass * Power /
+                                                                      energyGenerator.BaseWattageRating;
+                }
+            }
+            
+            // set output amount
+            if (energyGenerator.formula.outputs != null)
+            {
+                for (int i = 0; i < energyGenerator.formula.outputs.Length; i++)
+                {
+                    energyGenerator.formula.outputs[i].creationRate = originalFormula.outputs[i].creationRate * Power /
+                                                                      energyGenerator.BaseWattageRating;
+                }
+            }
+            
+            
         }
         int ISliderControl.SliderDecimalPlaces(int index) => 0;
         string ISliderControl.SliderTitleKey => TitleKey;
